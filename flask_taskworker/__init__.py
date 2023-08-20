@@ -12,3 +12,6 @@
 from __future__ import with_statement
 
 __version__ = '0.0.1'
+
+
+from .core import TaskWorker, define_task, append_task  # noqa: F401
