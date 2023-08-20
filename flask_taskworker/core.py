@@ -4,30 +4,30 @@
 import datetime
 
 from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 from peewee import SqliteDatabase, PostgresqlDatabase, MySQLDatabase
 
 FLASK_TASKER_ENGINE = "FLASK_TASKER_ENGINE"
 FLASK_TASKER_DRIVER = "FLASK_TASKER_DRIVER"
 
 
-class _JobsManager:
+class _TaskManager:
     def __init__(self):
-        self.jobs = {}
+        self.tasks = {}
 
     def append(self, f, name):
-        self.jobs[name] = f
+        self.tasks[name] = f
 
     def run(self, name, payload):
-        f = self.jobs[name]
+        f = self.tasks[name]
         result = f(**payload)
 
         return result
 
 
-class TaskWorker(BlockingScheduler):
-    def __init__(self, app):
-        BlockingScheduler.__init__(self)
-        self._manager = _JobsManager()
+class BaseTaskWorker():
+    def __init__(self):
+        self._manager = _TaskManager()
         self._handler = None
         self._app = None
         self._db = None
@@ -35,9 +35,6 @@ class TaskWorker(BlockingScheduler):
             FLASK_TASKER_ENGINE: "",
             FLASK_TASKER_DRIVER: ""
         }
-
-        if app is not None:
-            self.init_app(app)
 
     def init_app(self, app):
         self._app = app
@@ -58,6 +55,16 @@ class TaskWorker(BlockingScheduler):
     def append_task(self, task, payload):
         self._db.append_task(task, payload)
 
+    def define_task(self, name):
+        def outter(f):
+            def inner():
+                self._manager.append(f, name)
+                return f
+
+            return inner()
+
+        return outter
+
     def create_db(self):
         engine = self.config[FLASK_TASKER_ENGINE]
         driver = self.config[FLASK_TASKER_DRIVER]
@@ -69,15 +76,15 @@ class TaskWorker(BlockingScheduler):
             database_uri = self._app.config["SQLALCHEMY_DATABASE_URI"]
         
         if driver == "postgres":
-            from .models import postgres as database
+            from .sql import postgres as database
             db = PostgresqlDatabase(database_uri)
 
         elif driver == "mysql":
-            from .models import mysql as database
+            from .sql import mysql as database
             db = MySQLDatabase(database_uri)
 
         elif driver == "sqlite":
-            from .models import sqlite as database
+            from .sql import sqlite as database
             database_uri = database_uri.replace("\\", "/")
             database_uri = database_uri.replace("sqlite:///", "")
             db = SqliteDatabase(
@@ -131,23 +138,31 @@ class TaskWorker(BlockingScheduler):
         
         self.create_tables()
         self.add_job(self.event_handler, "interval", seconds=5)
+
+
+class BackgroundTaskWorker(BaseTaskWorker, BackgroundScheduler):
+    def __init__(self, app=None):
+
+        BackgroundScheduler.__init__(self)
+        BaseTaskWorker.__init__(self)
+    def init_app(self, app):
+
+        BaseTaskWorker.init_app(self, app)
+
+    def start(self):
+        BaseTaskWorker.start(self)
+        BackgroundScheduler.start(self)
+
+
+class BlockingTaskScheduler(BaseTaskWorker, BlockingScheduler):
+    def __init__(self, app=None):
+
+        BlockingScheduler.__init__(self)
+        BaseTaskWorker.__init__(self)
+
+    def init_app(self, app):
+        BaseTaskWorker.init_app(self, app)
+
+    def start(self):
+        BaseTaskWorker.start(self)
         BlockingScheduler.start(self)
-
-
-scheduler = TaskWorker()
-
-
-def define_task(name):
-    def outter(f):
-        def inner():
-            scheduler._manager.append(f, name)
-            return f
-
-        return inner()
-
-    return outter
-
-
-def append_task(task, payload):
-
-    scheduler.append_task(task, payload)
