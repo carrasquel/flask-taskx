@@ -6,6 +6,7 @@ import datetime
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.schedulers.background import BackgroundScheduler
 from peewee import SqliteDatabase, PostgresqlDatabase, MySQLDatabase
+from playhouse.db_url import connect
 
 FLASK_TASKER_ENGINE = "FLASK_TASKER_ENGINE"
 FLASK_TASKER_DRIVER = "FLASK_TASKER_DRIVER"
@@ -77,11 +78,12 @@ class BaseTaskWorker():
         
         if driver == "postgres":
             from .sql import postgres as database
-            db = PostgresqlDatabase(database_uri)
+            db = connect(database_uri)
 
         elif driver == "mysql":
             from .sql import mysql as database
-            db = MySQLDatabase(database_uri)
+            database_uri = database_uri.replace("mysql+pymysql", "mysql")
+            db = connect(database_uri)
 
         elif driver == "sqlite":
             from .sql import sqlite as database

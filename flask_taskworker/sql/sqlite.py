@@ -59,6 +59,7 @@ def complete_task(schedule, result):
     with proxy.atomic() as txn:
         schedule.output = result
         schedule.done = True
+        schedule.busy = False
         schedule.completion_date = datetime.datetime.utcnow()
         schedule.save()
 
