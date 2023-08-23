@@ -8,8 +8,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from peewee import SqliteDatabase, PostgresqlDatabase, MySQLDatabase
 from playhouse.db_url import connect
 
-FLASK_TASKER_ENGINE = "FLASK_TASKER_ENGINE"
-FLASK_TASKER_DRIVER = "FLASK_TASKER_DRIVER"
+TASKER_ENGINE = "TASKER_ENGINE"
+TASKER_DRIVER = "TASKER_DRIVER"
 
 
 class _TaskManager:
@@ -26,6 +26,16 @@ class _TaskManager:
         return result
 
 
+class BaseTask:
+    def __init__(self, name, scheduler):
+
+        self._name = name
+        self._scheduler = scheduler
+
+    def apply(self, payload):
+        self._scheduler._append_task(self._name, payload)
+
+
 class BaseTaskWorker():
     def __init__(self):
         self._manager = _TaskManager()
@@ -33,8 +43,8 @@ class BaseTaskWorker():
         self._app = None
         self._db = None
         self.config = {
-            FLASK_TASKER_ENGINE: "",
-            FLASK_TASKER_DRIVER: ""
+            TASKER_ENGINE: "",
+            TASKER_DRIVER: ""
         }
 
     def init_app(self, app):
@@ -48,15 +58,15 @@ class BaseTaskWorker():
         return result
     
     def set_engine(self, engine):
-        self.config[FLASK_TASKER_ENGINE] = engine
+        self.config[TASKER_ENGINE] = engine
 
     def set_driver(self, driver):
-        self.config[FLASK_TASKER_DRIVER] = driver
+        self.config[TASKER_DRIVER] = driver
 
-    def append_task(self, task, payload):
+    def _append_task(self, task, payload):
         self._db.append_task(task, payload)
 
-    def define_task(self, name):
+    def _define_task(self, name):
         def outter(f):
             def inner():
                 self._manager.append(f, name)
@@ -66,9 +76,18 @@ class BaseTaskWorker():
 
         return outter
 
+    def define_task(self, f):
+        def inner():
+            name = f.__name__
+            task = BaseTask(name, self)
+            self._manager.append(f, name)
+            return task
+
+        return inner()
+
     def create_db(self):
-        engine = self.config[FLASK_TASKER_ENGINE]
-        driver = self.config[FLASK_TASKER_DRIVER]
+        engine = self.config[TASKER_ENGINE]
+        driver = self.config[TASKER_DRIVER]
         database_uri = ""
 
         if not engine == "SQLALCHEMY":
@@ -130,11 +149,11 @@ class BaseTaskWorker():
                 self._db.pushback_task(schedule, str(e))
 
     def initialize_db(self, ):
-        if FLASK_TASKER_ENGINE in self._app.config:
-            self.set_engine(self._app.config[FLASK_TASKER_ENGINE])
+        if TASKER_ENGINE in self._app.config:
+            self.set_engine(self._app.config[TASKER_ENGINE])
         
-        if FLASK_TASKER_DRIVER in self._app.config:
-            self.set_driver(self._app.config[FLASK_TASKER_DRIVER])
+        if TASKER_DRIVER in self._app.config:
+            self.set_driver(self._app.config[TASKER_DRIVER])
 
     def start(self):
         
