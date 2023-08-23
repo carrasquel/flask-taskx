@@ -183,6 +183,10 @@ class BackgroundTaskWorker(BaseTaskWorker, BackgroundScheduler):
 
         BackgroundScheduler.__init__(self)
         BaseTaskWorker.__init__(self)
+
+        if app:
+            BaseTaskWorker.init_app(self, app)
+
     def init_app(self, app):
         """Initializes your tasks settings from the application settings.
 
@@ -210,6 +214,9 @@ class BlockingTaskWorker(BaseTaskWorker, BlockingScheduler):
 
         BlockingScheduler.__init__(self)
         BaseTaskWorker.__init__(self)
+
+        if app:
+            BaseTaskWorker.init_app(self, app)
 
     def init_app(self, app):
         """Initializes your tasks settings from the application settings.
