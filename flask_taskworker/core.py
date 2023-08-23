@@ -33,6 +33,11 @@ class BaseTask:
         self._scheduler = scheduler
 
     def apply(self, payload):
+        """Function to schedule a deferred function execution in the tasks scheduler.
+
+        :param payload: a dictionary holding the param names as key and param values as value.
+        """
+
         self._scheduler._append_task(self._name, payload)
 
 
@@ -77,8 +82,14 @@ class BaseTaskWorker():
         return outter
 
     def define_task(self, f):
+        """Decorator function to define tasks within the context of Flask.
+
+        :param f: a function to be decorated, this function will be used
+        for tasks execution.
+        """
+
         def inner():
-            name = f.__name__
+            name = "{module}.{name}".format(module=f.__module__, name=f.__name__)
             task = BaseTask(name, self)
             self._manager.append(f, name)
             return task
@@ -162,11 +173,24 @@ class BaseTaskWorker():
 
 
 class BackgroundTaskWorker(BaseTaskWorker, BackgroundScheduler):
+    """Manages scheduled background tasks
+
+    :param app: Flask instance
+    """
+
+
     def __init__(self, app=None):
 
         BackgroundScheduler.__init__(self)
         BaseTaskWorker.__init__(self)
     def init_app(self, app):
+        """Initializes your tasks settings from the application settings.
+
+        You can use this if you want to set up your BackgroundTaskWorker instance
+        at configuration time.
+
+        :param app: Flask application instance
+        """
 
         BaseTaskWorker.init_app(self, app)
 
@@ -175,13 +199,27 @@ class BackgroundTaskWorker(BaseTaskWorker, BackgroundScheduler):
         BackgroundScheduler.start(self)
 
 
-class BlockingTaskScheduler(BaseTaskWorker, BlockingScheduler):
+class BlockingTaskWorker(BaseTaskWorker, BlockingScheduler):
+    """Manages scheduled tasks
+
+    :param app: Flask instance
+    """
+
+
     def __init__(self, app=None):
 
         BlockingScheduler.__init__(self)
         BaseTaskWorker.__init__(self)
 
     def init_app(self, app):
+        """Initializes your tasks settings from the application settings.
+
+        You can use this if you want to set up your BlockingTaskWorker instance
+        at configuration time.
+
+        :param app: Flask application instance
+        """
+
         BaseTaskWorker.init_app(self, app)
 
     def start(self):
