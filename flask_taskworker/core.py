@@ -10,11 +10,14 @@ from playhouse.db_url import connect
 
 TASKER_ENGINE = "TASKER_ENGINE"
 TASKER_DRIVER = "TASKER_DRIVER"
+TASKER_INTERVAL_TIME = "TASKER_INTERVAL_TIME"
 
 
 class _TaskManager:
     def __init__(self):
         self.tasks = {}
+        self.crons = []
+        self.dates = []
 
     def append(self, f, name):
         self.tasks[name] = f
@@ -24,6 +27,12 @@ class _TaskManager:
         result = f(**payload)
 
         return result
+
+    def add_cron(self, f, *args, **kwargs):
+        self.crons.append((f, (args, kwargs,),))
+
+    def add_date(self, f, *args, **kwargs):
+        self.dates.append((f, (args, kwargs,),))
 
 
 class BaseTask:
@@ -49,7 +58,8 @@ class BaseTaskWorker():
         self._db = None
         self.config = {
             TASKER_ENGINE: "",
-            TASKER_DRIVER: ""
+            TASKER_DRIVER: "",
+            TASKER_INTERVAL_TIME: 5,
         }
 
     def init_app(self, app):
@@ -57,10 +67,17 @@ class BaseTaskWorker():
         self.initialize_db()
         self.create_db()
 
+        if TASKER_INTERVAL_TIME in self._app.config:
+            interval_time = int(self._app.config[TASKER_INTERVAL_TIME])
+            self.set_interval_time(interval_time)
+
     def run_job(self, job, payload):
         result = self._manager.run(job, payload)
 
         return result
+    
+    def set_interval_time(self, time):
+        self.config[TASKER_INTERVAL_TIME] = time
     
     def set_engine(self, engine):
         self.config[TASKER_ENGINE] = engine
@@ -93,6 +110,22 @@ class BaseTaskWorker():
             task = BaseTask(name, self)
             self._manager.append(f, name)
             return task
+
+        return inner()
+    
+    def define_cron_task(self, *args, **kwargs):
+
+        def inner(f):
+            self._manager.add_cron(f, *args, **kwargs)
+            return f
+
+        return inner()
+
+    def define_date_task(self, *args, **kwargs):
+
+        def inner(f):
+            self._manager.add_date(f, *args, **kwargs)
+            return f
 
         return inner()
 
@@ -139,6 +172,18 @@ class BaseTaskWorker():
             
         self._database.create_tables([self._db.Schedule])
 
+    def date_executor(self, f):
+
+        with self._app.app_context():
+
+            f()
+
+    def cron_executor(self, f):
+
+        with self._app.app_context():
+
+            f()
+
     def event_handler(self):
 
         with self._app.app_context():
@@ -169,7 +214,8 @@ class BaseTaskWorker():
     def start(self):
         
         self.create_tables()
-        self.add_job(self.event_handler, "interval", seconds=5)
+        interval_time = self.config[TASKER_INTERVAL_TIME]
+        self.add_job(self.event_handler, "interval", seconds=interval_time)
 
 
 class BackgroundTaskWorker(BaseTaskWorker, BackgroundScheduler):
