@@ -113,6 +113,14 @@ class BaseTaskWorker():
 
         return inner()
     
+    def get_crons(self):
+
+        return self._manager.crons
+    
+    def get_dates(self):
+
+        return self._manager.dates
+    
     def define_cron_task(self, *args, **kwargs):
 
         def inner(f):
@@ -174,15 +182,21 @@ class BaseTaskWorker():
 
     def date_executor(self, f):
 
-        with self._app.app_context():
+        def wrapper():
+            with self._app.app_context():
 
-            f()
+                f()
+
+        return wrapper
 
     def cron_executor(self, f):
 
-        with self._app.app_context():
+        def wrapper():
+            with self._app.app_context():
 
-            f()
+                f()
+
+        return wrapper
 
     def event_handler(self):
 
@@ -211,11 +225,41 @@ class BaseTaskWorker():
         if TASKER_DRIVER in self._app.config:
             self.set_driver(self._app.config[TASKER_DRIVER])
 
+    def register_crons(self):
+
+        crons = self.get_crons()
+
+        if not crons:
+            return
+        
+        for cron in crons:
+            f, params = cron
+            args, kwargs = params
+
+            f = self.cron_executor(f)
+            self.add_job(f, 'cron', *args, **kwargs)
+
+    def register_dates(self):
+
+        dates = self.get_dates()
+
+        if not dates:
+            return
+        
+        for date in dates:
+            f, params = date
+            args, kwargs = params
+
+            f = self.date_executor(f)
+            self.add_job(f, 'date', *args, **kwargs)
+
     def start(self):
         
         self.create_tables()
         interval_time = self.config[TASKER_INTERVAL_TIME]
         self.add_job(self.event_handler, "interval", seconds=interval_time)
+        self.register_crons()
+        self.register_dates()
 
 
 class BackgroundTaskWorker(BaseTaskWorker, BackgroundScheduler):
