@@ -198,7 +198,7 @@ class BaseTaskWorker():
 
         return wrapper
 
-    def event_handler(self):
+    def task_executor(self):
 
         with self._app.app_context():
             now = datetime.datetime.utcnow()
@@ -218,7 +218,7 @@ class BaseTaskWorker():
             except Exception as e:
                 self._db.pushback_task(schedule, str(e))
 
-    def initialize_db(self, ):
+    def initialize_db(self,):
         if TASKER_ENGINE in self._app.config:
             self.set_engine(self._app.config[TASKER_ENGINE])
         
@@ -257,7 +257,7 @@ class BaseTaskWorker():
         
         self.create_tables()
         interval_time = self.config[TASKER_INTERVAL_TIME]
-        self.add_job(self.event_handler, "interval", seconds=interval_time)
+        self.add_job(self.task_executor, "interval", seconds=interval_time)
         self.register_crons()
         self.register_dates()
 
