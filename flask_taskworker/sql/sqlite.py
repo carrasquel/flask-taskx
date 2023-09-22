@@ -29,6 +29,18 @@ class Schedule(BaseModel):
     fail_message = JSONField(null=True)
 
 
+def save_task(automation, scheduled_date, completion_date, payload=None, output=None, fail_message=None):
+    Schedule.create(
+        automation=automation,
+        scheduled_date=scheduled_date,
+        completion_date=completion_date,
+        payload=payload,
+        done=True,
+        output=output,
+        fail_message=fail_message
+    )
+
+
 def pop_task():
 
     with proxy.atomic() as txn:

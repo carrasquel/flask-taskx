@@ -183,6 +183,7 @@ class BaseTaskWorker():
     def date_executor(self, f):
 
         def wrapper():
+            now = datetime.datetime.utcnow()
             with self._app.app_context():
 
                 f()
@@ -192,9 +193,26 @@ class BaseTaskWorker():
     def cron_executor(self, f):
 
         def wrapper():
+            now = datetime.datetime.utcnow()
+            output = None
+            fail_message = None
             with self._app.app_context():
 
-                f()
+                try:
+                    output = f()
+                except Exception as e:
+                    fail_message = str(e)
+
+            later = datetime.datetime.utcnow()
+
+            name = f.__name__
+            self._db.save_task(
+                name,
+                now,
+                later,
+                output=output,
+                fail_message=fail_message
+            )
 
         return wrapper
 
