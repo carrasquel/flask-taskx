@@ -3,9 +3,9 @@
 
 import datetime
 
-from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.schedulers.background import BackgroundScheduler
-from peewee import SqliteDatabase, PostgresqlDatabase, MySQLDatabase
+from apscheduler.schedulers.blocking import BlockingScheduler
+from peewee import MySQLDatabase, PostgresqlDatabase, SqliteDatabase
 from playhouse.db_url import connect
 
 TASKER_ENGINE = "TASKER_ENGINE"

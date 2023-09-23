@@ -1,5 +1,5 @@
-import sys, os
-
+import os
+import sys
 
 print(os.path.abspath('../flask_taskworker'))
 

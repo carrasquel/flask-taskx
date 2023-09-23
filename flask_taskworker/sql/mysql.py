@@ -3,7 +3,8 @@
 
 import datetime
 
-from peewee import Model, CharField, DateTimeField, BooleanField, IntegerField, Proxy
+from peewee import (BooleanField, CharField, DateTimeField, IntegerField,
+                    Model, Proxy)
 from playhouse.mysql_ext import JSONField
 
 proxy = Proxy()

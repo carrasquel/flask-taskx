@@ -14,4 +14,5 @@ from __future__ import with_statement
 __version__ = '0.0.1'
 
 
-from .core import BaseTask, BaseTaskWorker, BackgroundTaskWorker, BlockingTaskWorker  # noqa: F401
+from .core import (BackgroundTaskWorker, BaseTask,  # noqa: F401
+                   BaseTaskWorker, BlockingTaskWorker)

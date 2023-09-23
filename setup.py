@@ -13,7 +13,6 @@ Links
 """
 from setuptools import setup
 
-
 setup(
     name='Flask-TaskWorker',
     version='0.0.1',
