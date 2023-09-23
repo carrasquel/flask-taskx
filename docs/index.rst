@@ -154,7 +154,7 @@ In this task will be executed by the task worker as soon as possible.
 API
 ---
 
-.. module:: flask-taskworker
+.. module:: flask_taskworker
 
 .. autoclass:: BackgroundTaskWorker
    :members: init_app

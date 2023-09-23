@@ -112,7 +112,7 @@ class BaseTaskWorker():
             return task
 
         return inner()
-    
+
     def get_crons(self):
 
         return self._manager.crons
