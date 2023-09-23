@@ -29,15 +29,30 @@ class _TaskManager:
         return result
 
     def add_cron(self, f, *args, **kwargs):
-        self.crons.append((f, (args, kwargs,),))
+        self.crons.append(
+            (
+                f,
+                (
+                    args,
+                    kwargs,
+                ),
+            )
+        )
 
     def add_date(self, f, *args, **kwargs):
-        self.dates.append((f, (args, kwargs,),))
+        self.dates.append(
+            (
+                f,
+                (
+                    args,
+                    kwargs,
+                ),
+            )
+        )
 
 
 class BaseTask:
     def __init__(self, name, scheduler):
-
         self._name = name
         self._scheduler = scheduler
 
@@ -50,7 +65,7 @@ class BaseTask:
         self._scheduler._append_task(self._name, payload)
 
 
-class BaseTaskWorker():
+class BaseTaskWorker:
     def __init__(self):
         self._manager = _TaskManager()
         self._handler = None
@@ -75,10 +90,10 @@ class BaseTaskWorker():
         result = self._manager.run(job, payload)
 
         return result
-    
+
     def set_interval_time(self, time):
         self.config[TASKER_INTERVAL_TIME] = time
-    
+
     def set_engine(self, engine):
         self.config[TASKER_ENGINE] = engine
 
@@ -114,15 +129,12 @@ class BaseTaskWorker():
         return inner()
 
     def get_crons(self):
-
         return self._manager.crons
-    
+
     def get_dates(self):
-
         return self._manager.dates
-    
-    def define_cron_task(self, *args, **kwargs):
 
+    def define_cron_task(self, *args, **kwargs):
         def inner(f):
             self._manager.add_cron(f, *args, **kwargs)
             return f
@@ -130,7 +142,6 @@ class BaseTaskWorker():
         return inner()
 
     def define_date_task(self, *args, **kwargs):
-
         def inner(f):
             self._manager.add_date(f, *args, **kwargs)
             return f
@@ -146,18 +157,21 @@ class BaseTaskWorker():
             return
         else:
             database_uri = self._app.config["SQLALCHEMY_DATABASE_URI"]
-        
+
         if driver == "postgres":
             from .sql import postgres as database
+
             db = connect(database_uri)
 
         elif driver == "mysql":
             from .sql import mysql as database
+
             database_uri = database_uri.replace("mysql+pymysql", "mysql")
             db = connect(database_uri)
 
         elif driver == "sqlite":
             from .sql import sqlite as database
+
             database_uri = database_uri.replace("\\", "/")
             database_uri = database_uri.replace("sqlite:///", "")
             db = SqliteDatabase(
@@ -169,7 +183,7 @@ class BaseTaskWorker():
                     "foreign_keys": 1,
                     "ignore_check_constraints": 0,
                     "synchronous": 0,
-                }
+                },
             )
 
         self._db = database
@@ -177,27 +191,22 @@ class BaseTaskWorker():
         self._database = db
 
     def create_tables(self):
-            
         self._database.create_tables([self._db.Schedule])
 
     def date_executor(self, f):
-
         def wrapper():
             now = datetime.datetime.utcnow()
             with self._app.app_context():
-
                 f()
 
         return wrapper
 
     def cron_executor(self, f):
-
         def wrapper():
             now = datetime.datetime.utcnow()
             output = None
             fail_message = None
             with self._app.app_context():
-
                 try:
                     output = f()
                 except Exception as e:
@@ -207,17 +216,12 @@ class BaseTaskWorker():
 
             name = f.__name__
             self._db.save_task(
-                name,
-                now,
-                later,
-                output=output,
-                fail_message=fail_message
+                name, now, later, output=output, fail_message=fail_message
             )
 
         return wrapper
 
     def task_executor(self):
-
         with self._app.app_context():
             now = datetime.datetime.utcnow()
             schedule = self._db.pop_task()
@@ -236,43 +240,42 @@ class BaseTaskWorker():
             except Exception as e:
                 self._db.pushback_task(schedule, str(e))
 
-    def initialize_db(self,):
+    def initialize_db(
+        self,
+    ):
         if TASKER_ENGINE in self._app.config:
             self.set_engine(self._app.config[TASKER_ENGINE])
-        
+
         if TASKER_DRIVER in self._app.config:
             self.set_driver(self._app.config[TASKER_DRIVER])
 
     def register_crons(self):
-
         crons = self.get_crons()
 
         if not crons:
             return
-        
+
         for cron in crons:
             f, params = cron
             args, kwargs = params
 
             f = self.cron_executor(f)
-            self.add_job(f, 'cron', *args, **kwargs)
+            self.add_job(f, "cron", *args, **kwargs)
 
     def register_dates(self):
-
         dates = self.get_dates()
 
         if not dates:
             return
-        
+
         for date in dates:
             f, params = date
             args, kwargs = params
 
             f = self.date_executor(f)
-            self.add_job(f, 'date', *args, **kwargs)
+            self.add_job(f, "date", *args, **kwargs)
 
     def start(self):
-        
         self.create_tables()
         interval_time = self.config[TASKER_INTERVAL_TIME]
         self.add_job(self.task_executor, "interval", seconds=interval_time)
@@ -286,9 +289,7 @@ class BackgroundTaskWorker(BaseTaskWorker, BackgroundScheduler):
     :param app: Flask instance
     """
 
-
     def __init__(self, app=None):
-
         BackgroundScheduler.__init__(self)
         BaseTaskWorker.__init__(self)
 
@@ -317,9 +318,7 @@ class BlockingTaskWorker(BaseTaskWorker, BlockingScheduler):
     :param app: Flask instance
     """
 
-
     def __init__(self, app=None):
-
         BlockingScheduler.__init__(self)
         BaseTaskWorker.__init__(self)
 

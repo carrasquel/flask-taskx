@@ -3,8 +3,7 @@
 
 import datetime
 
-from peewee import (BooleanField, CharField, DateTimeField, IntegerField,
-                    Model, Proxy)
+from peewee import BooleanField, CharField, DateTimeField, IntegerField, Model, Proxy
 from playhouse.mysql_ext import JSONField
 
 proxy = Proxy()
@@ -17,7 +16,7 @@ class BaseModel(Model):
 
 class Schedule(BaseModel):
     class Meta:
-        db_table = 'flask_tasker_schedule'
+        db_table = "flask_tasker_schedule"
 
     automation = CharField()
     scheduled_date = DateTimeField(default=datetime.datetime.utcnow)
@@ -31,7 +30,14 @@ class Schedule(BaseModel):
     fail_message = JSONField()
 
 
-def save_task(automation, scheduled_date, completion_date, payload=None, output=None, fail_message=None):
+def save_task(
+    automation,
+    scheduled_date,
+    completion_date,
+    payload=None,
+    output=None,
+    fail_message=None,
+):
     Schedule.create(
         automation=automation,
         scheduled_date=scheduled_date,
@@ -39,14 +45,12 @@ def save_task(automation, scheduled_date, completion_date, payload=None, output=
         payload=payload,
         done=True,
         output=output,
-        fail_message=fail_message
+        fail_message=fail_message,
     )
 
 
 def pop_task():
-
     with proxy.atomic() as txn:
-
         _query = Schedule.select().order_by(Schedule.scheduled_date.desc())
         schedule = (
             _query.where(Schedule.done == False)
@@ -57,7 +61,7 @@ def pop_task():
 
         if not schedule:
             return
-        
+
         schedule.busy = True
         schedule.save()
 
