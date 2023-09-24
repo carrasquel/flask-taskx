@@ -17,6 +17,8 @@ def taskx_cli(keywords, remote):
 
     if keywords == "run":
 
+        app = None
+
         dotenv_path = os.path.join(_cwd, '.env')
         load_dotenv(dotenv_path)
 
@@ -48,6 +50,15 @@ def taskx_cli(keywords, remote):
             app = module.create_app()
         elif "make_app" in attrs:
             app = module.make_app()
+
+        if not app:
+            return
+        
+        app_attrs = dir(app)
+
+        if not "_task_worker" in app_attrs:
+            print("Not task worker available")
+            return
 
         task_worker = app._task_worker
         task_worker.start()
