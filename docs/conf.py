@@ -1,10 +1,10 @@
 import os
 import sys
 
-print(os.path.abspath("../flask_taskworker"))
+print(os.path.abspath("../flask_taskx"))
 
 sys.path.insert(0, os.path.abspath("../"))
-sys.path.insert(0, os.path.abspath("../flask_taskworker"))
+sys.path.insert(0, os.path.abspath("../flask_taskx"))
 
 # Configuration file for the Sphinx documentation builder.
 #

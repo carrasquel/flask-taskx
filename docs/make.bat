@@ -7,7 +7,7 @@ REM Command file for Sphinx documentation
 if "%SPHINXBUILD%" == "" (
 	set SPHINXBUILD=sphinx-build
 )
-set SOURCEDIR=../flask_taskworker
+set SOURCEDIR=../flask_taskx
 set BUILDDIR=_build
 
 %SPHINXBUILD% >NUL 2>NUL

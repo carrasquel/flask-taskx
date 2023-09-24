@@ -1,41 +1,41 @@
-Flask-TaskWorker
+Flask-TaskX
 ======================================
 
-.. module:: flask_taskworker
+.. module:: flask_taskx
 
 In the modern era, a recurrent feature required in a web application is the ability to 
 execute non-blocking and asynchronous tasks.
 
-The **Flask-TaskWorker** extension provides a simple interface to set up task functions 
+The **Flask-TaskX** extension provides a simple interface to set up task functions 
 within your `Flask`_ application and scheduled them for later execution
 
 Links
 -----
 
-* `documentation <http://packages.python.org/Flask-TaskWorker/>`_
-* `source <http://github.com/carrasquel/flask-taskworker>`_
+* `documentation <http://packages.python.org/Flask-TaskX/>`_
+* `source <http://github.com/carrasquel/flask-taskx>`_
 * :doc:`changelog </changelog>`
 
-Installing Flask-TaskWorker
+Installing Flask-TaskX
 ---------------------------
 
 Install with **pip** and **easy_install**::
 
-    pip install Flask-TaskWorker
+    pip install Flask-TaskX
 
 or download the latest version from version control::
 
-    git clone https://github.com/carrasquel/flask-taskworker.git
-    cd flask-taskworker
+    git clone https://github.com/carrasquel/flask-taskx.git
+    cd flask-taskx
     python setup.py install
 
-If you are using **virtualenv**, it is assumed that you are installing flask-taskworker
+If you are using **virtualenv**, it is assumed that you are installing flask-taskx
 in the same virtualenv as your Flask application(s).
 
-Configuring Flask-TaskWorker
+Configuring Flask-TaskX
 ----------------------------
 
-**Flask-TaskWorker** is configured through the standard Flask config API. These are the available
+**Flask-TaskX** is configured through the standard Flask config API. These are the available
 options (each is explained later in the documentation):
 
 * **TASKER_ENGINE** : default **'sqlalchemy'**
@@ -50,7 +50,7 @@ options (each is explained later in the documentation):
 Tasks are managed through an instance one the followings, ``BackgroundTaskWorker`` instance or ``BlockingTaskWorker`` instance::
 
     from flask import Flask
-    from flask_taskworker import BackgroundTaskWorker
+    from flask_taskx import BackgroundTaskWorker
 
     app = Flask(__name__)
     task_worker = BackgroundTaskWorker(app)
@@ -71,7 +71,7 @@ In this case tasks will be executed using the configuration values from Flask's 
 context global. This is useful if you have multiple applications running in the same
 process but with different configuration options.
 
-Running Flask-TaskWorker
+Running Flask-TaskX
 ------------------------
 
 Finally, once you have configured your application, you can start your task worker::
@@ -84,7 +84,7 @@ Finally, once you have configured your application, you can start your task work
 Difference between BackgroundTaskWorker and BlockingTaskWorker
 --------------------------------------------------------------
 
-**Flask-TaskWorker** was designed to schedule and execute tasks within the same context
+**Flask-TaskX** was designed to schedule and execute tasks within the same context
 of a `Flask`_ application, this means that inside your tasks definitions, you can
 invoke any function, class or method that depends and requires the application
 context.
@@ -94,7 +94,7 @@ services execution topology, if you are planning to run the `Flask`_ application
 in the same machine as the `Flask-TaskWorker`, the choice in this case is to use an instance
 of `BackgroundTaskWorker`, this will not block the `Flask`_ application to start serving.
 
-`Flask`_ application and `Flask-TaskWorker` application machine::
+`Flask`_ application and `Flask-TaskX` application machine::
 
     task_worker = BackgroudTaskWorker()
 
@@ -105,7 +105,7 @@ of `BackgroundTaskWorker`, this will not block the `Flask`_ application to start
     app.run()
 
 On the other hand, if you are planning to run the `Flask`_ application services
-in a different machine than `Flask-TaskWorker`, the choice in this case is to use an instance
+in a different machine than `Flask-TaskX`, the choice in this case is to use an instance
 of `BlockingTaskWorker`, this will block the `Flask`_ application to start serving.
 
 `Flask`_ application machine::
@@ -117,7 +117,7 @@ of `BlockingTaskWorker`, this will block the `Flask`_ application to start servi
 
     app.run()
 
-`Flask-TaskWorker` application machine::
+`Flask-TaskX` application machine::
 
     task_worker = BlockingTaskWorker()
 
@@ -154,7 +154,7 @@ In this task will be executed by the task worker as soon as possible.
 API
 ---
 
-.. module:: flask_taskworker
+.. module:: flask_taskx
 
 .. autoclass:: BackgroundTaskWorker
    :members: init_app
@@ -169,4 +169,4 @@ API
    :members: apply
 
 .. _Flask: http://flask.pocoo.org
-.. _GitHub: http://github.com/carrasquel/flask-taskworker
+.. _GitHub: http://github.com/carrasquel/flask-taskx
