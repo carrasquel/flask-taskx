@@ -13,8 +13,11 @@ Links
 """
 from setuptools import setup
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
 setup(
-    name="Flask-TaskX",
+    name="flask-taskx",
     version="1.0",
     url="https://github.com/carrasquel/flask-taskx",
     license="BSD",
@@ -23,7 +26,8 @@ setup(
     maintainer="Nelson Carrasquel",
     maintainer_email="carrasquel@outlook.com",
     description="A Flask extension for defining and running tasks",
-    long_description=__doc__,
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     py_modules=["flask_taskx"],
     zip_safe=False,
     platforms="any",

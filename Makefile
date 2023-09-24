@@ -22,3 +22,7 @@ flake8:
 	$(PYTHON) -m flake8 .
 
 lint: isort black flake8
+
+build:
+	$(PYTHON) setup.py sdist
+	$(PYTHON) setup.py bdist_wheel
