@@ -186,6 +186,13 @@ The ``run_date`` can be given either as a date/datetime object or text (in the I
 
         msg = send_message(**kwargs)
 
+Running Flask-TaskX from CLI
+----------------------------
+
+You can execute the task worker from the command line using the ``taskx`` command.::
+
+    taskx run
+
 API
 ---
 

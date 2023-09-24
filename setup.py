@@ -15,19 +15,24 @@ from setuptools import setup
 
 setup(
     name="Flask-TaskX",
-    version="0.0.1",
+    version="1.0",
     url="https://github.com/carrasquel/flask-taskx",
     license="BSD",
     author="Nelson Carrasquel",
     author_email="carrasquel@outlook.com",
     maintainer="Nelson Carrasquel",
     maintainer_email="carrasquel@outlook.com",
-    description="A Flask extension for creating and running tasks",
+    description="A Flask extension for defining and running tasks",
     long_description=__doc__,
     py_modules=["flask_taskx"],
     zip_safe=False,
     platforms="any",
-    install_requires=["Flask", "apscheduler", "peewee"],
+    entry_points={
+        'console_scripts': [
+            'taskx = flask_taskx:cli',
+        ],
+    },
+    install_requires=["Flask", "apscheduler", "peewee", "Click==7.0",],
     tests_require=[
         "nose",
         "mock",

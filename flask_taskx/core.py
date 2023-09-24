@@ -353,6 +353,7 @@ class BackgroundTaskWorker(BaseTaskWorker, BackgroundScheduler):
         """
 
         BaseTaskWorker.init_app(self, app)
+        app._task_worker = self
 
     def start(self):
         BaseTaskWorker.start(self)
@@ -382,6 +383,7 @@ class BlockingTaskWorker(BaseTaskWorker, BlockingScheduler):
         """
 
         BaseTaskWorker.init_app(self, app)
+        app._task_worker = self
 
     def start(self):
         BaseTaskWorker.start(self)
