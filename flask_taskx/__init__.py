@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-    flaskext.taskworker
+    flaskext.taskx
     ~~~~~~~~~~~~~
 
     Flask extension for creating and running tasks.

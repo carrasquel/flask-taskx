@@ -1,10 +1,10 @@
 import os
 import sys
 
-print(os.path.abspath("../flask_taskworker"))
+print(os.path.abspath("../flask_taskx"))
 
 sys.path.insert(0, os.path.abspath("../"))
-sys.path.insert(0, os.path.abspath("../flask_taskworker"))
+sys.path.insert(0, os.path.abspath("../flask_taskx"))
 
 # Configuration file for the Sphinx documentation builder.
 #
@@ -28,9 +28,12 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 root_doc = "index"
 
-
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "alabaster"
 html_static_path = ["_static"]
+html_theme_options = {
+    # Disable showing the sidebar. Defaults to 'false'
+    'nosidebar': True,
+}
