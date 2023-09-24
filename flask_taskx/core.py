@@ -115,9 +115,13 @@ class BaseTaskWorker:
 
     def define_task(self, f):
         """Decorator function to define tasks within the context of Flask.
+        It returns an instance of a BaseTask class than can be appliable for 
+        later executions.
 
         :param f: a function to be decorated, this function will be used
         for tasks execution.
+
+        :return: [BaseTask]
         """
 
         def inner():
@@ -128,13 +132,28 @@ class BaseTaskWorker:
 
         return inner()
 
-    def get_crons(self):
-        return self._manager.crons
-
-    def get_dates(self):
-        return self._manager.dates
-
     def define_cron_task(self, *args, **kwargs):
+        """
+        Decorator function to define cron tasks within the context of Flask
+        it triggers tasks when current time matches all specified time constraints,
+        similarly to how the UNIX cron scheduler works.
+
+        :param int|str year: 4-digit year
+        :param int|str month: month (1-12)
+        :param int|str day: day of month (1-31)
+        :param int|str week: ISO week (1-53)
+        :param int|str day_of_week: number or name of weekday (0-6 or mon,tue,wed,thu,fri,sat,sun)
+        :param int|str hour: hour (0-23)
+        :param int|str minute: minute (0-59)
+        :param int|str second: second (0-59)
+        :param datetime|str start_date: earliest possible date/time to trigger on (inclusive)
+        :param datetime|str end_date: latest possible date/time to trigger on (inclusive)
+        :param datetime.tzinfo|str timezone: time zone to use for the date/time calculations (defaults
+            to scheduler timezone)
+        :param int|None jitter: delay the job execution by ``jitter`` seconds at most
+
+        .. note:: The first weekday is always **monday**.
+        """
         def inner(f):
             self._manager.add_cron(f, *args, **kwargs)
             return f
@@ -142,11 +161,24 @@ class BaseTaskWorker:
         return inner()
 
     def define_date_task(self, *args, **kwargs):
+        """
+        Decorator function to define cron tasks within the context of Flask
+        it triggers tasks once on the given datetime. If ``run_date`` is left empty, current time is used.
+
+        :param datetime|str run_date: the date/time to run the job at
+        :param datetime.tzinfo|str timezone: time zone for ``run_date`` if it doesn't have one already
+        """
         def inner(f):
             self._manager.add_date(f, *args, **kwargs)
             return f
 
         return inner()
+
+    def get_crons(self):
+        return self._manager.crons
+
+    def get_dates(self):
+        return self._manager.dates
 
     def create_db(self):
         engine = self.config[TASKER_ENGINE]
@@ -261,6 +293,10 @@ class BaseTaskWorker:
         if TASKER_DRIVER in self._app.config:
             self.set_driver(self._app.config[TASKER_DRIVER])
 
+    def register_task(self):
+        interval_time = self.config[TASKER_INTERVAL_TIME]
+        self.add_job(self.task_executor, "interval", seconds=interval_time)
+
     def register_crons(self):
         crons = self.get_crons()
 
@@ -289,8 +325,7 @@ class BaseTaskWorker:
 
     def start(self):
         self.create_tables()
-        interval_time = self.config[TASKER_INTERVAL_TIME]
-        self.add_job(self.task_executor, "interval", seconds=interval_time)
+        self.register_task()
         self.register_crons()
         self.register_dates()
 

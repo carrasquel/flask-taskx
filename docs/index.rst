@@ -165,6 +165,12 @@ API
 .. autoclass:: BaseTaskWorker
    :members: define_task
 
+.. autoclass:: BaseTaskWorker
+   :members: define_cron_task
+
+.. autoclass:: BaseTaskWorker
+   :members: define_date_task
+
 .. autoclass:: BaseTask
    :members: apply
 
