@@ -1,0 +1,4 @@
+sphinx==7.2.6
+APScheduler==3.10.3
+peewee==3.16.3
+Click==7.0

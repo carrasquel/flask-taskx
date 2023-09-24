@@ -5,6 +5,8 @@ import click
 import sys
 from dotenv import load_dotenv
 
+from flask_taskx import BackgroundTaskWorker
+
 _cwd = os.getcwd()
 sys.path.append(_cwd)
 
@@ -61,4 +63,9 @@ def taskx_cli(keywords, remote):
             return
 
         task_worker = app._task_worker
-        task_worker.start()
+
+        if isinstance(task_worker, BackgroundTaskWorker):
+            task_worker.start()
+            app.run()
+        else:
+            task_worker.start()
