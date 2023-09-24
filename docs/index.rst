@@ -7,7 +7,7 @@ In the modern era, a recurrent feature required in a web application is the abil
 execute non-blocking and asynchronous tasks.
 
 The **Flask-TaskX** extension provides a simple interface to set up task functions 
-within your `Flask`_ application and scheduled them for later execution
+within your `Flask`_ application and scheduled them for immediate or later execution
 
 Links
 -----
@@ -15,6 +15,9 @@ Links
 * `documentation <http://packages.python.org/Flask-TaskX/>`_
 * `source <http://github.com/carrasquel/flask-taskx>`_
 * :doc:`changelog </changelog>`
+
+.. contents:: Table of Contents
+    :depth: 3
 
 Installing Flask-TaskX
 ---------------------------
@@ -29,7 +32,7 @@ or download the latest version from version control::
     cd flask-taskx
     python setup.py install
 
-If you are using **virtualenv**, it is assumed that you are installing flask-taskx
+If you are using **virtualenv**, it is assumed that you are installing ``flask-taskx``
 in the same virtualenv as your Flask application(s).
 
 Configuring Flask-TaskX
@@ -91,10 +94,10 @@ context.
 
 So the decision to choose the background or blocking instance will depend on your
 services execution topology, if you are planning to run the `Flask`_ application services
-in the same machine as the `Flask-TaskWorker`, the choice in this case is to use an instance
+in the same machine as the `Flask-TaskX` worker, the choice in this case is to use an instance
 of `BackgroundTaskWorker`, this will not block the `Flask`_ application to start serving.
 
-`Flask`_ application and `Flask-TaskX` application machine::
+`Flask`_ application and `Flask-TaskX` application on the same machine::
 
     task_worker = BackgroudTaskWorker()
 
@@ -104,9 +107,9 @@ of `BackgroundTaskWorker`, this will not block the `Flask`_ application to start
     task_worker.start()
     app.run()
 
-On the other hand, if you are planning to run the `Flask`_ application services
-in a different machine than `Flask-TaskX`, the choice in this case is to use an instance
-of `BlockingTaskWorker`, this will block the `Flask`_ application to start serving.
+On the other hand, if you are planning to run the `Flask`_ application service
+in a different machine than `Flask-TaskX` worker, the choice in this case is to use an instance
+of ``BlockingTaskWorker``, this will block the `Flask`_ application to start serving.
 
 `Flask`_ application machine::
 
@@ -133,23 +136,55 @@ Defining tasks
 
 Tasks are functions to be registered for later execution.
 
-To define a task we have to use the decorator method `define_task` from a task worker::
+To define a task we have to use the decorator method ``define_task`` from a task worker::
 
     @task_worker.define_task
     def email_task(**kwargs):
 
         msg = send_message(**kwargs)
 
-Execute tasks
--------------
+Executing tasks
+---------------
 
-Once a task is dfined in can be executed from a `Flask` application using the `apply` method
+Once a task is dfined in can be executed from a `Flask` application using the ``apply`` method
 from the decorated function::
 
     from tasks import email_task
     email_task.apply(**payload)
 
 In this task will be executed by the task worker as soon as possible.
+
+Defining cron tasks
+-------------------
+
+This is the most powerful of the built-in triggers in `Flask-TaskX`. 
+You can specify a variety of different expressions on each field, 
+and when determining the next execution time, it finds the earliest 
+possible time that satisfies the conditions in every field. 
+This behavior resembles the “Cron” utility found in most 
+UNIX-like operating systems.::
+
+    from datetime import date
+
+    @task_worker.define_cron_task(month='6-8,11-12', day='3rd fri', hour='0-3')
+    def email_task(**kwargs):
+
+        msg = send_message(**kwargs)
+
+Defining date tasks
+-------------------
+
+This is the simplest possible method of scheduling a task. It schedules a task to be 
+executed once at the specified time. It is `Flask-TaskX` equivalent to the UNIX “at” command.
+
+The ``run_date`` can be given either as a date/datetime object or text (in the ISO 8601 format).::
+
+    from datetime import date
+
+    @task_worker.define_date_task(run_date=date(2009, 11, 6), args=['email@email.com'])
+    def email_task(**kwargs):
+
+        msg = send_message(**kwargs)
 
 API
 ---
