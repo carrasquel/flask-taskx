@@ -7,7 +7,7 @@ In the modern era, a recurrent feature required in a web application is the abil
 execute non-blocking and asynchronous tasks.
 
 The **Flask-TaskX** extension provides a simple interface to set up task functions 
-within your `Flask`_ application and scheduled them for immediate or later execution
+within your `Flask`_ application and scheduled them for immediate or later execution.
 
 Links
 -----
@@ -19,8 +19,8 @@ Links
 .. contents:: Table of Contents
     :depth: 3
 
-Installing Flask-TaskX
----------------------------
+Installing **Flask-TaskX**
+--------------------------
 
 Install with **pip** and **easy_install**::
 
@@ -35,8 +35,20 @@ or download the latest version from version control::
 If you are using **virtualenv**, it is assumed that you are installing ``flask-taskx``
 in the same virtualenv as your Flask application(s).
 
-Configuring Flask-TaskX
-----------------------------
+How does **Flask-TaskX** work?
+------------------------------
+
+**Flask-TaskX** uses the **APScheduler** library as jobs execution engine, this execution 
+that runs the jobs is called **worker** and it manages the execution of scheduled tasks.
+In the context of **Flask-TaskX** a **task** is a function that has been decorated in 
+order to mark it as task.
+
+This tasks are enqueue and executed by the worker when the scheduled time is met. 
+This **queue** could be defined in the same database used by the Flask application 
+or with a third-party queue or messaging system suchas `Redis`_ or `RabbitMQ`_.
+
+Configuring **Flask-TaskX**
+---------------------------
 
 **Flask-TaskX** is configured through the standard Flask config API. These are the available
 options (each is explained later in the documentation):
@@ -50,7 +62,9 @@ options (each is explained later in the documentation):
 * **TASKER_DEBUG** : default **app.debug**
 
 
-Tasks are managed through an instance one the followings, ``BackgroundTaskWorker`` instance or ``BlockingTaskWorker`` instance::
+Tasks are managed by a worker, this can be achieved with 
+an instance of one of the followings, ``BackgroundTaskWorker`` 
+instance or ``BlockingTaskWorker`` instance::
 
     from flask import Flask
     from flask_taskx import BackgroundTaskWorker
@@ -62,20 +76,19 @@ In this case all tasks will be executed using the configuration values of the ap
 was passed to the ``BackgroundTaskWorker`` class constructor.
 
 Alternatively you can set up your ``BackgroundTaskWorker`` instance later at configuration time, using the
-**init_app** method::
+``init_app`` method::
 
     task_worker = BackgroundTaskWorker()
 
     app = Flask(__name__)
     task_worker.init_app(app)
 
-
 In this case tasks will be executed using the configuration values from Flask's ``current_app``
 context global. This is useful if you have multiple applications running in the same
 process but with different configuration options.
 
-Running Flask-TaskX
-------------------------
+Running **Flask-TaskX**
+-----------------------
 
 Finally, once you have configured your application, you can start your task worker::
 
@@ -83,9 +96,8 @@ Finally, once you have configured your application, you can start your task work
     app.run()
 
 
-
-Difference between BackgroundTaskWorker and BlockingTaskWorker
---------------------------------------------------------------
+Difference between **BackgroundTaskWorker** and **BlockingTaskWorker**
+----------------------------------------------------------------------
 
 **Flask-TaskX** was designed to schedule and execute tasks within the same context
 of a `Flask`_ application, this means that inside your tasks definitions, you can
@@ -93,8 +105,8 @@ invoke any function, class or method that depends and requires the application
 context.
 
 So the decision to choose the background or blocking instance will depend on your
-services execution topology, if you are planning to run the `Flask`_ application services
-in the same machine as the `Flask-TaskX` worker, the choice in this case is to use an instance
+services topology, if you are planning to run the `Flask`_ application service
+in the same machine as the **Flask-TaskX** worker, the choice in this case is to use an instance
 of `BackgroundTaskWorker`, this will not block the `Flask`_ application to start serving.
 
 `Flask`_ application and `Flask-TaskX` application on the same machine::
@@ -108,7 +120,7 @@ of `BackgroundTaskWorker`, this will not block the `Flask`_ application to start
     app.run()
 
 On the other hand, if you are planning to run the `Flask`_ application service
-in a different machine than `Flask-TaskX` worker, the choice in this case is to use an instance
+in a different machine than the **Flask-TaskX** worker, the choice in this case is to use an instance
 of ``BlockingTaskWorker``, this will block the `Flask`_ application to start serving.
 
 `Flask`_ application machine::
@@ -120,7 +132,7 @@ of ``BlockingTaskWorker``, this will block the `Flask`_ application to start ser
 
     app.run()
 
-`Flask-TaskX` application machine::
+**Flask-TaskX** worker machine::
 
     task_worker = BlockingTaskWorker()
 
@@ -143,16 +155,19 @@ To define a task we have to use the decorator method ``define_task`` from a task
 
         msg = send_message(**kwargs)
 
+This will turn the same function into a appliable function, then you can import this function 
+into another module an schedule the task for inmediate execution by the worker.
+
 Executing tasks
 ---------------
 
-Once a task is dfined in can be executed from a `Flask` application using the ``apply`` method
+Once a task is defined it can be executed from anywhere in a `Flask` application using the ``apply`` method
 from the decorated function::
 
     from tasks import email_task
     email_task.apply(**payload)
 
-In this task will be executed by the task worker as soon as possible.
+This call will enqueue the a task and it will be executed by the task worker as soon as possible.
 
 Defining cron tasks
 -------------------
@@ -186,12 +201,32 @@ The ``run_date`` can be given either as a date/datetime object or text (in the I
 
         msg = send_message(**kwargs)
 
-Running Flask-TaskX from CLI
-----------------------------
+Queues available in **Flask-TaskX**
+-----------------------------------
 
-You can execute the task worker from the command line using the ``taskx`` command.::
+Since **Flask-TaskX** was designed to be implemented in **Flask**, most likely if you 
+are developing a web application you are using some Relational Database(SQL), by default 
+**Flask-TaskX** uses **sqlalchemy** as the database connection engine and **sqlite** as the 
+SQL flavour as driver. But you can change this by specifying the configurations parameters.
+
+If **sqlalchemy** is used the connection address is extracted from the same **Flask** 
+database configuration value which is the **SQLALCHEMY_DATABASE_URI** setting. Once a task 
+worker have started, the queue is defined in this same database as a custom table to 
+save and manage the state of each task.
+
+You can specify a message broker as a queue engine and also task manager.
+
+Running **Flask-TaskX** from CLI
+--------------------------------
+
+You can execute the task worker from the command line using the ``taskx`` command::
 
     taskx run
+
+This will try to find a Flask application instance the same way the command ``flask run`` 
+does it, using the **FLASK_APP** environment variable or inside a ``app.py`` python module. 
+If a task worker has been appropriately instantiated and configured in the codebase, 
+the task worker will be found and started.
 
 API
 ---
@@ -216,5 +251,7 @@ API
 .. autoclass:: BaseTask
    :members: apply
 
-.. _Flask: http://flask.pocoo.org
-.. _GitHub: http://github.com/carrasquel/flask-taskx
+.. _Flask: https://flask.pocoo.org
+.. _GitHub: https://github.com/carrasquel/flask-taskx
+.. _Redis: https://redis.io/
+.. _RabbitMQ: https://www.rabbitmq.com/
