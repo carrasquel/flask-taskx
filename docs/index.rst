@@ -53,7 +53,7 @@ Configuring **Flask-TaskX**
 **Flask-TaskX** is configured through the standard Flask config API. These are the available
 options (each is explained later in the documentation):
 
-* **TASKER_ENGINE** : default **'sqlalchemy'**
+* **TASKER_DATABASE_URI** : default **''**
 
 * **TASKER_DRIVER** : default **'sqlite'**
 
@@ -204,20 +204,17 @@ The ``run_date`` can be given either as a date/datetime object or text (in the I
 Queues available in **Flask-TaskX**
 -----------------------------------
 
-**Flask-TaskX** has it's own implementation of, it is a queue a Database-Backed Queue, 
+**Flask-TaskX** has it's own implementation of a queue, it is a Database-Backed Queue, 
 this means that the Queue is implemented using a relational database, though we know this is 
 an anti-pattern, we have reasons to believe that for some purposes, a queue implemented this way 
 is the proper approach to enqueue asynchronous tasks.
 
 Since **Flask-TaskX** was designed to be implemented in **Flask**, most likely if you 
-are developing a web application you are using some Relational Database(SQL), by default 
-**Flask-TaskX** uses **sqlalchemy** as the database connection engine and **sqlite** as the 
-SQL flavour as driver. But you can change this by specifying the configurations parameters.
-
-If **sqlalchemy** is used the connection address is extracted from the same **Flask** 
-database configuration value which is the **SQLALCHEMY_DATABASE_URI** setting. Once a task 
-worker have started, the queue is defined in this same database as a custom table to 
-save and manage the state of each task.
+are developing a web application you are using some Relational Database(SQL), in order for  
+**Flask-TaskX** to connect to database the config value **TASKER_DATABASE_URI** must be defined, 
+if this config value is not provided **SQLALCHEMY_DATABASE_URI** from the Flask app will be used instead. 
+This way you can use the same relational database used by your Flask models or a different database 
+just to store the **Flask-TaskX** Queue.
 
 Running **Flask-TaskX** from CLI
 --------------------------------

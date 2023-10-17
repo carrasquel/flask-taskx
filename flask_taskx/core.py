@@ -8,9 +8,17 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 from peewee import MySQLDatabase, PostgresqlDatabase, SqliteDatabase
 from playhouse.db_url import connect
 
-TASKER_ENGINE = "TASKER_ENGINE"
+TASKER_DATABASE_URI = "TASKER_DATABASE_URI"
 TASKER_DRIVER = "TASKER_DRIVER"
 TASKER_INTERVAL_TIME = "TASKER_INTERVAL_TIME"
+
+
+class NoneDatabaseURIException(Exception):
+    "Raised when there is not available database uri defined"
+    
+    def __init__(self, message="Database uri not defined in Flask Config"):
+        self.message = message
+        super().__init__(self.message)
 
 
 class _TaskManager:
@@ -72,7 +80,7 @@ class BaseTaskWorker:
         self._app = None
         self._db = None
         self.config = {
-            TASKER_ENGINE: "",
+            TASKER_DATABASE_URI: "",
             TASKER_DRIVER: "",
             TASKER_INTERVAL_TIME: 5,
         }
@@ -94,8 +102,8 @@ class BaseTaskWorker:
     def set_interval_time(self, time):
         self.config[TASKER_INTERVAL_TIME] = time
 
-    def set_engine(self, engine):
-        self.config[TASKER_ENGINE] = engine
+    def set_database_uri(self, database_uri):
+        self.config[TASKER_DATABASE_URI] = database_uri
 
     def set_driver(self, driver):
         self.config[TASKER_DRIVER] = driver
@@ -181,14 +189,14 @@ class BaseTaskWorker:
         return self._manager.dates
 
     def create_db(self):
-        engine = self.config[TASKER_ENGINE]
         driver = self.config[TASKER_DRIVER]
-        database_uri = ""
+        database_uri = self.config[TASKER_DATABASE_URI]
 
-        if not engine == "SQLALCHEMY":
-            return
-        else:
-            database_uri = self._app.config["SQLALCHEMY_DATABASE_URI"]
+        if not database_uri:
+            try:
+                database_uri = self._app.config["SQLALCHEMY_DATABASE_URI"]
+            except:
+                raise NoneDatabaseURIException
 
         if driver == "postgres":
             from .sql import postgres as database
@@ -287,8 +295,8 @@ class BaseTaskWorker:
     def initialize_db(
         self,
     ):
-        if TASKER_ENGINE in self._app.config:
-            self.set_engine(self._app.config[TASKER_ENGINE])
+        if TASKER_DATABASE_URI in self._app.config:
+            self.set_database_uri(self._app.config[TASKER_DATABASE_URI])
 
         if TASKER_DRIVER in self._app.config:
             self.set_driver(self._app.config[TASKER_DRIVER])
