@@ -44,8 +44,8 @@ In the context of **Flask-TaskX** a **task** is a function that has been decorat
 order to mark it as task.
 
 This tasks are enqueue and executed by the worker when the scheduled time is met. 
-This **queue** could be defined in the same database used by the Flask application 
-or with a third-party queue or messaging system suchas `Redis`_ or `RabbitMQ`_.
+This **queue** is a Database-Backed Queue and it could be defined in the same database 
+used by the Flask application or another SQL Relational Database.
 
 Configuring **Flask-TaskX**
 ---------------------------
@@ -167,7 +167,7 @@ from the decorated function::
     from tasks import email_task
     email_task.apply(**payload)
 
-This call will enqueue the a task and it will be executed by the task worker as soon as possible.
+This call will enqueue a task and it will be executed by the task worker as soon as possible.
 
 Defining cron tasks
 -------------------
@@ -204,6 +204,11 @@ The ``run_date`` can be given either as a date/datetime object or text (in the I
 Queues available in **Flask-TaskX**
 -----------------------------------
 
+**Flask-TaskX** has it's own implementation of, it is a queue a Database-Backed Queue, 
+this means that the Queue is implemented using a relational database, though we know this is 
+an anti-pattern, we have reasons to believe that for some purposes, a queue implemented this way 
+is the proper approach to enqueue asynchronous tasks.
+
 Since **Flask-TaskX** was designed to be implemented in **Flask**, most likely if you 
 are developing a web application you are using some Relational Database(SQL), by default 
 **Flask-TaskX** uses **sqlalchemy** as the database connection engine and **sqlite** as the 
@@ -213,8 +218,6 @@ If **sqlalchemy** is used the connection address is extracted from the same **Fl
 database configuration value which is the **SQLALCHEMY_DATABASE_URI** setting. Once a task 
 worker have started, the queue is defined in this same database as a custom table to 
 save and manage the state of each task.
-
-You can specify a message broker as a queue engine and also task manager.
 
 Running **Flask-TaskX** from CLI
 --------------------------------

@@ -1,5 +1,5 @@
 # flask-taskx
-Flask-TaskX is an extension for [Flask](https://flask.palletsprojects.com/) that adds the capability of running tasks within the context of your Flask applications. If you are familiar with Flask, Flask-TaskX should be easy to pick up. It provides a coherent collection of decorators and tools to define and execute asynchronous tasks.
+Flask-TaskX is an extension for [Flask](https://flask.palletsprojects.com/) that adds the capability of running asynchronous tasks within the context of your Flask applications. If you are familiar with Flask, Flask-TaskX should be easy to pick up. It provides a coherent collection of decorators and tools to define and execute asynchronous tasks.
 
 # Installation
 
