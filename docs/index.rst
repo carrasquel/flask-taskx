@@ -204,7 +204,7 @@ The ``run_date`` can be given either as a date/datetime object or text (in the I
 Queues available in **Flask-TaskX**
 -----------------------------------
 
-**Flask-TaskX** has it's own implementation of, it is a queue a Database-Backed Queue, 
+**Flask-TaskX** has it's own implementation of a queue, it is a Database-Backed Queue, 
 this means that the Queue is implemented using a relational database, though we know this is 
 an anti-pattern, we have reasons to believe that for some purposes, a queue implemented this way 
 is the proper approach to enqueue asynchronous tasks.
