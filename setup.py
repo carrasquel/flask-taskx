@@ -18,7 +18,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="flask-taskx",
-    version="1.0",
+    version="1.1",
     url="https://github.com/carrasquel/flask-taskx",
     license="BSD",
     author="Nelson Carrasquel",
