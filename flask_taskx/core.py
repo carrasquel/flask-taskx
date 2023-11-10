@@ -5,7 +5,8 @@ import datetime
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers.blocking import BlockingScheduler
-from peewee import MySQLDatabase, PostgresqlDatabase, SqliteDatabase
+from manager import TaskManager
+from peewee import SqliteDatabase
 from playhouse.db_url import connect
 
 TASKER_DATABASE_URI = "TASKER_DATABASE_URI"
@@ -19,44 +20,6 @@ class NoneDatabaseURIException(Exception):
     def __init__(self, message="Database uri not defined in Flask Config"):
         self.message = message
         super().__init__(self.message)
-
-
-class _TaskManager:
-    def __init__(self):
-        self.tasks = {} # Stores function by key-value pairs, keys as function ids and values as function objects.
-        self.crons = [] # Stores cron function jobs
-        self.dates = [] # Stores date function jobs
-
-    def append(self, f, name):
-        self.tasks[name] = f
-
-    def run(self, name, payload):
-        f = self.tasks[name]
-        result = f(**payload)
-
-        return result
-
-    def add_cron(self, f, *args, **kwargs):
-        self.crons.append(
-            (
-                f,
-                (
-                    args,
-                    kwargs,
-                ),
-            )
-        )
-
-    def add_date(self, f, *args, **kwargs):
-        self.dates.append(
-            (
-                f,
-                (
-                    args,
-                    kwargs,
-                ),
-            )
-        )
 
 
 class BaseTask:
@@ -75,9 +38,10 @@ class BaseTask:
 
 class BaseTaskWorker:
     def __init__(self):
-        self._manager = _TaskManager()
+        self._manager = TaskManager()
         self._handler = None
         self._app = None
+        self._worker = None
         self._db = None
         self.config = {
             TASKER_DATABASE_URI: "",
