@@ -19,6 +19,9 @@ class AMQPWorker:
 
     def task_producer(self, *args, **kwargs):
         pass
+
+    def append_task(self, task, payload):
+        self._db.append_task(task, payload)
     
     def start(self):
         pass

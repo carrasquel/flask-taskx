@@ -1,5 +1,9 @@
+import datetime
+
 from peewee import SqliteDatabase
 from playhouse.db_url import connect
+
+from manager import TaskManager
 
 TASKER_DATABASE_URI = "TASKER_DATABASE_URI"
 TASKER_DRIVER = "TASKER_DRIVER"
@@ -15,9 +19,10 @@ class NoneDatabaseURIException(Exception):
 
 class SQLWorker:
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         self._app = None
         self._db = None
+        self._manager = TaskManager()
         self.config = dict()
 
     def init_app(self, app):
@@ -29,20 +34,23 @@ class SQLWorker:
             interval_time = int(self._app.config[TASKER_INTERVAL_TIME])
             self.set_interval_time(interval_time)
 
+    def set_interval_time(self, time):
+        self.config[TASKER_INTERVAL_TIME] = time
+
     def set_database_uri(self, database_uri):
         self.config[TASKER_DATABASE_URI] = database_uri
 
     def set_driver(self, driver):
         self.config[TASKER_DRIVER] = driver
 
-    def initialize_db(self, *args, **kwargs):
+    def initialize_db(self):
         if TASKER_DATABASE_URI in self._app.config:
             self.set_database_uri(self._app.config[TASKER_DATABASE_URI])
 
         if TASKER_DRIVER in self._app.config:
             self.set_driver(self._app.config[TASKER_DRIVER])
 
-    def create_db(self, *args, **kwargs):
+    def create_db(self):
         driver = self.config[TASKER_DRIVER]
         database_uri = self.config[TASKER_DATABASE_URI]
 
@@ -84,14 +92,43 @@ class SQLWorker:
         self._db.proxy.initialize(db)
         self._database = db
 
-    def create_tables(self, *args, **kwargs):
+    def create_tables(self):
         self._database.create_tables([self._db.Schedule])
+    
+    def run_task(self, job, payload):
+        result = self._manager.run(job, payload)
 
-    def task_consumer(self, *args, **kwargs):
-        pass
+        return result
+
+    def task_consumer(self):
+        with self._app.app_context():
+            now = datetime.datetime.utcnow()
+            schedule = self._db.pop_task()
+
+            if not schedule:
+                return
+
+            if now < schedule.scheduled_date:
+                return
+            try:
+                automation = schedule.automation
+                payload = schedule.payload
+
+                result = self.run_task(automation, payload)
+                self._db.complete_task(schedule, result)
+            except Exception as e:
+                self._db.pushback_task(schedule, str(e))
 
     def task_producer(self, *args, **kwargs):
         pass
+
+    def append_task(self, task, payload):
+        self._db.append_task(task, payload)
+
+    def save_task(self, name, now, later, output=None, fail_message=None):
+        self._db.save_task(
+            name, now, later, output=output, fail_message=fail_message
+        )
 
     def start(self):
         self.create_tables()
