@@ -23,9 +23,9 @@ class NoneDatabaseURIException(Exception):
 
 class _TaskManager:
     def __init__(self):
-        self.tasks = {}
-        self.crons = []
-        self.dates = []
+        self.tasks = {} # Stores function by key-value pairs, keys as function ids and values as function objects.
+        self.crons = [] # Stores cron function jobs
+        self.dates = [] # Stores date function jobs
 
     def append(self, f, name):
         self.tasks[name] = f
@@ -65,7 +65,7 @@ class BaseTask:
         self._scheduler = scheduler
 
     def apply(self, payload):
-        """Function to schedule a deferred function execution in the tasks scheduler.
+        """Method to schedule a deferred function execution in the tasks scheduler.
 
         :param payload: a dictionary holding the param names as key and param values as value.
         """
