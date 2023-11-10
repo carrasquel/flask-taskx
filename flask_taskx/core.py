@@ -5,23 +5,12 @@ import datetime
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers.blocking import BlockingScheduler
-from manager import TaskManager
-from peewee import SqliteDatabase
-from playhouse.db_url import connect
 
 from utils import get_scheme
 
-TASKER_DATABASE_URI = "TASKER_DATABASE_URI"
+TASKER_ENGINE_URI = "TASKER_ENGINE_URI"
 TASKER_DRIVER = "TASKER_DRIVER"
 TASKER_INTERVAL_TIME = "TASKER_INTERVAL_TIME"
-
-
-class NoneDatabaseURIException(Exception):
-    "Raised when there is not available database uri defined"
-    
-    def __init__(self, message="Database uri not defined in Flask Config"):
-        self.message = message
-        super().__init__(self.message)
 
 
 class BaseTask:
@@ -40,12 +29,11 @@ class BaseTask:
 
 class BaseTaskWorker:
     def __init__(self):
-        self._manager = TaskManager()
         self._handler = None
         self._app = None
         self._worker = None
         self.config = {
-            TASKER_DATABASE_URI: "",
+            TASKER_ENGINE_URI: "",
             TASKER_DRIVER: "",
             TASKER_INTERVAL_TIME: 5,
         }
@@ -68,7 +56,7 @@ class BaseTaskWorker:
 
     def check_scheme(self):
 
-        uri = self._app.config[TASKER_DATABASE_URI]
+        uri = self._app.config[TASKER_ENGINE_URI]
         scheme = get_scheme(uri)
 
         return scheme

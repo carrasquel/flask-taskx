@@ -5,7 +5,7 @@ from playhouse.db_url import connect
 
 from manager import TaskManager
 
-TASKER_DATABASE_URI = "TASKER_DATABASE_URI"
+TASKER_ENGINE_URI = "TASKER_ENGINE_URI"
 TASKER_DRIVER = "TASKER_DRIVER"
 TASKER_INTERVAL_TIME = "TASKER_INTERVAL_TIME"
 
@@ -38,21 +38,21 @@ class SQLWorker:
         self.config[TASKER_INTERVAL_TIME] = time
 
     def set_database_uri(self, database_uri):
-        self.config[TASKER_DATABASE_URI] = database_uri
+        self.config[TASKER_ENGINE_URI] = database_uri
 
     def set_driver(self, driver):
         self.config[TASKER_DRIVER] = driver
 
     def initialize_db(self):
-        if TASKER_DATABASE_URI in self._app.config:
-            self.set_database_uri(self._app.config[TASKER_DATABASE_URI])
+        if TASKER_ENGINE_URI in self._app.config:
+            self.set_database_uri(self._app.config[TASKER_ENGINE_URI])
 
         if TASKER_DRIVER in self._app.config:
             self.set_driver(self._app.config[TASKER_DRIVER])
 
     def create_db(self):
         driver = self.config[TASKER_DRIVER]
-        database_uri = self.config[TASKER_DATABASE_URI]
+        database_uri = self.config[TASKER_ENGINE_URI]
 
         if not database_uri:
             try:
